@@ -1,11 +1,8 @@
-use crate::{
-    db::{self, Adventurer, AdventurersGuild},
-    AppState,
-};
+use crate::db::{self, Adventurer, AdventurersGuild};
 use rocket::{
     http::Status,
     serde::{json::Json, Deserialize},
-    Route, State,
+    Route,
 };
 use serde::Serialize;
 
@@ -31,28 +28,19 @@ pub async fn create_adventurer(data: Json<AdventurerData>, db: AdventurersGuild)
 
 #[get("/")]
 pub async fn index_adventurers(db: AdventurersGuild) -> Json<IndexAdventurersResponse> {
-    let adventurers = db.run(|conn| {
-        db::index(&conn)
-    }).await;
+    let adventurers = db.run(|conn| db::index(&conn)).await;
 
-    Json(IndexAdventurersResponse {
-        adventurers,
-    })
+    Json(IndexAdventurersResponse { adventurers })
 }
 
 #[delete("/<id>")]
-pub fn delete_adventurer(id: String, state: &State<AppState>) -> Status {
-    let mut adventurers = state.adventurers.lock().unwrap();
+pub async fn delete_adventurer(id: String, db: AdventurersGuild) -> Status {
+    let deleted_rows = db.run(|conn| db::delete(&conn, id)).await;
 
-    match adventurers
-        .iter()
-        .position(|adventurer| adventurer.id == id)
-    {
-        Some(index) => {
-            adventurers.remove(index);
-            Status::Ok
-        }
-        None => Status::NotFound,
+    if deleted_rows > 0 {
+        Status::Ok
+    } else {
+        Status::NotFound
     }
 }
 

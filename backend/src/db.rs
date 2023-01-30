@@ -36,7 +36,16 @@ pub fn create(conn: &PgConnection, username: String) -> Adventurer {
         .expect("failed to insert adventurer to database.")
 }
 
-pub fn index(conn : &PgConnection) -> Vec<Adventurer> {
-    adventurers::table.load(conn)
+pub fn index(conn: &PgConnection) -> Vec<Adventurer> {
+    adventurers::table
+        .load(conn)
         .expect("failed to index adventurers.")
+}
+
+pub fn delete(conn: &PgConnection, target_id: String) -> usize {
+    use crate::schema::adventurers::dsl::*;
+
+    diesel::delete(adventurers.filter(id.eq(target_id)))
+        .execute(conn)
+        .expect("failed to delete adventurer.")
 }
