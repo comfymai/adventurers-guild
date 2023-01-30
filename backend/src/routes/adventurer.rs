@@ -30,11 +30,13 @@ pub async fn create_adventurer(data: Json<AdventurerData>, db: AdventurersGuild)
 }
 
 #[get("/")]
-pub fn index_adventurers(state: &State<AppState>) -> Json<IndexAdventurersResponse> {
-    let adventurers = state.adventurers.lock().unwrap();
+pub async fn index_adventurers(db: AdventurersGuild) -> Json<IndexAdventurersResponse> {
+    let adventurers = db.run(|conn| {
+        db::index(&conn)
+    }).await;
 
     Json(IndexAdventurersResponse {
-        adventurers: adventurers.to_vec(),
+        adventurers,
     })
 }
 

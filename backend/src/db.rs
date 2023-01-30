@@ -33,5 +33,10 @@ pub fn create(conn: &PgConnection, username: String) -> Adventurer {
     diesel::insert_into(adventurers::table)
         .values(new_adventurer)
         .get_result::<Adventurer>(conn)
-        .expect("a")
+        .expect("failed to insert adventurer to database.")
+}
+
+pub fn index(conn : &PgConnection) -> Vec<Adventurer> {
+    adventurers::table.load(conn)
+        .expect("failed to index adventurers.")
 }
