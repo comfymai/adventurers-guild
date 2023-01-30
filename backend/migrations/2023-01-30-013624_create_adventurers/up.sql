@@ -1,0 +1,4 @@
+CREATE TABLE adventurers (
+    id VARCHAR(36) PRIMARY KEY,
+    username VARCHAR(36) NOT NULL UNIQUE
+)
