@@ -3,9 +3,9 @@ mod db;
 mod schema;
 
 use routes::adventurer;
-use db::{AdventurersGuild, Adventurer};
+use db::AdventurersGuild;
 use rocket::Config;
-use std::{sync::{Arc, Mutex}, env, collections::HashMap};
+use std::{env, collections::HashMap};
 use dotenvy::dotenv;
 
 #[macro_use]
@@ -16,10 +16,6 @@ extern crate rocket_sync_db_pools;
 
 #[macro_use]
 extern crate diesel;
-
-pub struct AppState {
-    adventurers: Arc<Mutex<Vec<Adventurer>>>,
-}
 
 #[launch]
 fn app() -> _ {
@@ -37,9 +33,6 @@ fn app() -> _ {
         .merge(("databases", dbs));
 
     rocket::custom(figment)
-        .manage(AppState {
-            adventurers: Arc::new(Mutex::new(vec![])),
-        })
         .attach(AdventurersGuild::fairing())
         .mount("/adventurer", adventurer::get_routes())
 }
