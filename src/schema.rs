@@ -1,7 +1,7 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
-    adventurers (id) {
+    members (id) {
         id -> Varchar,
         username -> Varchar,
     }
