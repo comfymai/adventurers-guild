@@ -5,7 +5,7 @@ mod schema;
 use database::AdventurersGuild;
 use dotenvy::dotenv;
 use rocket::{figment::Figment, Config};
-use routes::members;
+use routes::{members, posts};
 use std::{collections::HashMap, env};
 
 #[macro_use]
@@ -36,4 +36,5 @@ fn app() -> _ {
     rocket::custom(get_config())
         .attach(AdventurersGuild::fairing())
         .mount("/members", members::get_routes())
+        .mount("/posts", posts::get_routes())
 }

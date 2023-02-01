@@ -2,3 +2,4 @@
 pub struct AdventurersGuild(diesel::PgConnection);
 
 pub mod members;
+pub mod posts;
