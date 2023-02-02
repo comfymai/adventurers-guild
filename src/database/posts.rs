@@ -46,3 +46,9 @@ pub fn create<'a>(conn: &PgConnection, data: PostData<'a>) -> Post {
         .get_result::<Post>(conn)
         .expect("failed to create post.")
 }
+
+pub fn index(conn: &PgConnection) -> Vec<Post> {
+    posts::table
+        .load(conn)
+        .expect("failed to index posts.")
+}

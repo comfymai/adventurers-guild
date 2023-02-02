@@ -8,6 +8,11 @@ pub struct NewResponse {
     post: Post,
 }
 
+#[derive(Serialize)]
+pub struct IndexResponse {
+    posts: Vec<Post>
+}
+
 #[derive(Deserialize)]
 pub struct NewData {
     pub author_id: String,
@@ -30,6 +35,15 @@ pub async fn new(data: Json<NewData>, db: AdventurersGuild) -> Json<NewResponse>
     Json(NewResponse { post })
 }
 
+#[get("/")]
+pub async fn index(db: AdventurersGuild) -> Json<IndexResponse> {
+    let posts = db.run(|conn| {
+        posts::index(&conn)
+    }).await;
+
+    Json(IndexResponse { posts })
+}
+
 pub fn get_routes() -> Vec<Route> {
-    routes![new]
+    routes![new, index]
 }
