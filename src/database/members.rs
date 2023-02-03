@@ -1,4 +1,4 @@
-use crate::models::member::Member;
+use crate::models::member::{Member, MemberJson};
 use crate::schema::members;
 
 use diesel::pg::PgConnection;
@@ -18,7 +18,7 @@ pub struct MemberData<'a> {
     pub username: &'a str,
 }
 
-pub fn create<'a>(conn: &PgConnection, data: MemberData<'a>) -> Member {
+pub fn create<'a>(conn: &PgConnection, data: MemberData<'a>) -> MemberJson {
     let new_member = NewMember {
         id: &Uuid::new_v4().to_string()[..],
         username: data.username,
@@ -28,6 +28,7 @@ pub fn create<'a>(conn: &PgConnection, data: MemberData<'a>) -> Member {
         .values(new_member)
         .get_result::<Member>(conn)
         .expect("failed to create member.")
+        .to_json()
 }
 
 pub struct IndexingOptions {

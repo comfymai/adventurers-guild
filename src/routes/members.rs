@@ -1,4 +1,4 @@
-use crate::models::member::Member;
+use crate::models::member::{Member, MemberJson};
 use crate::database::members::MemberData;
 use crate::database::{members, AdventurersGuild};
 use rocket::{
@@ -9,7 +9,7 @@ use serde::Serialize;
 
 #[derive(Serialize)]
 pub struct RegisterResponse {
-    member: Member,
+    member: MemberJson,
 }
 
 #[derive(Serialize)]

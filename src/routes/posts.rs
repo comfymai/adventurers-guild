@@ -1,4 +1,4 @@
-use crate::models::post::Post;
+use crate::models::post::{Post, PostJson};
 
 use rocket::{serde::json::Json, Route};
 use serde::{Deserialize, Serialize};
@@ -7,7 +7,7 @@ use crate::database::{posts::{self, PostData}, AdventurersGuild};
 
 #[derive(Serialize)]
 pub struct NewResponse {
-    post: Post,
+    post: PostJson,
 }
 
 #[derive(Serialize)]

@@ -1,4 +1,4 @@
-use crate::models::post::Post;
+use crate::models::post::{Post, PostJson};
 use crate::schema::posts;
 
 use diesel::pg::PgConnection;
@@ -24,7 +24,7 @@ pub struct PostData<'a> {
     pub kind: i32,
 }
 
-pub fn create<'a>(conn: &PgConnection, data: PostData<'a>) -> Post {
+pub fn create<'a>(conn: &PgConnection, data: PostData<'a>) -> PostJson {
     let new_post = NewPost {
         id: &Uuid::new_v4().to_string()[..],
         author_id: data.author_id,
@@ -37,6 +37,7 @@ pub fn create<'a>(conn: &PgConnection, data: PostData<'a>) -> Post {
         .values(new_post)
         .get_result::<Post>(conn)
         .expect("failed to create post.")
+        .to_json()
 }
 
 pub fn index(conn: &PgConnection) -> Vec<Post> {
