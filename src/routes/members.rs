@@ -1,4 +1,5 @@
-use crate::database::members::{Member, MemberData};
+use crate::models::member::Member;
+use crate::database::members::MemberData;
 use crate::database::{members, AdventurersGuild};
 use rocket::{
     serde::{json::Json, Deserialize},

@@ -1,18 +1,10 @@
+use crate::models::post::Post;
 use crate::schema::posts;
 
-use diesel::prelude::*;
 use diesel::pg::PgConnection;
-use serde::{Serialize, Deserialize};
+use diesel::prelude::*;
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-
-#[derive(Queryable, Serialize, Clone)]
-pub struct Post {
-    pub id: String,
-    pub author_id: String,
-    pub title: String,
-    pub content: String,
-    pub kind: i32,
-}
 
 #[derive(Insertable)]
 #[table_name = "posts"]
@@ -38,7 +30,7 @@ pub fn create<'a>(conn: &PgConnection, data: PostData<'a>) -> Post {
         author_id: data.author_id,
         title: data.title,
         content: data.content,
-        kind: data.kind
+        kind: data.kind,
     };
 
     diesel::insert_into(posts::table)
@@ -48,7 +40,5 @@ pub fn create<'a>(conn: &PgConnection, data: PostData<'a>) -> Post {
 }
 
 pub fn index(conn: &PgConnection) -> Vec<Post> {
-    posts::table
-        .load(conn)
-        .expect("failed to index posts.")
+    posts::table.load(conn).expect("failed to index posts.")
 }

@@ -1,4 +1,5 @@
 mod database;
+mod models;
 mod routes;
 mod schema;
 
