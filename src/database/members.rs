@@ -8,19 +8,19 @@ use uuid::Uuid;
 
 #[derive(Insertable)]
 #[table_name = "members"]
-pub struct NewMember<'a> {
-    pub id: &'a str,
-    pub username: &'a str,
+pub struct NewMember {
+    pub id: String,
+    pub username: String,
 }
 
 #[derive(Serialize)]
-pub struct MemberData<'a> {
-    pub username: &'a str,
+pub struct MemberData {
+    pub username: String,
 }
 
-pub fn create<'a>(conn: &PgConnection, data: MemberData<'a>) -> MemberJson {
+pub fn create<'a>(conn: &PgConnection, data: MemberData) -> MemberJson {
     let new_member = NewMember {
-        id: &Uuid::new_v4().to_string()[..],
+        id: Uuid::new_v4().to_string(),
         username: data.username,
     };
 

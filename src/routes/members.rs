@@ -12,8 +12,29 @@ pub struct RegisterResponse {
     member: MemberJson,
 }
 
+#[derive(Deserialize)]
+pub struct RegisterData {
+    name: String,
+}
+
+#[post("/register", data = "<data>")]
+pub async fn register(data: Json<RegisterData>, db: AdventurersGuild) -> Json<RegisterResponse> {
+    let member = db
+        .run(move |conn| {
+            members::create(
+                &conn,
+                MemberData {
+                    username: data.name.clone(),
+                },
+            )
+        })
+        .await;
+
+    Json(RegisterResponse { member })
+}
+
 #[derive(Serialize)]
-pub struct IndexMembersResponse {
+pub struct IndexResponse {
     members: Vec<MemberJson>,
 }
 
@@ -27,40 +48,19 @@ impl Default for IndexData {
     fn default() -> Self {
         Self {
             id: None,
-            username: None
+            username: None,
         }
     }
 }
 
-#[derive(Deserialize)]
-pub struct AdventurerData {
-    name: String,
-}
-
-#[post("/register", data = "<data>")]
-pub async fn register(data: Json<AdventurerData>, db: AdventurersGuild) -> Json<RegisterResponse> {
-    let member = db
-        .run(move |conn| {
-            members::create(
-                &conn,
-                MemberData {
-                    username: &data.name[..],
-                },
-            )
-        })
-        .await;
-
-    Json(RegisterResponse { member })
-}
-
-#[get("/", format="json", data = "<filters>")]
+#[get("/", format = "json", data = "<filters>")]
 pub async fn index_members(
     filters: Option<Json<IndexData>>,
     db: AdventurersGuild,
-) -> Json<IndexMembersResponse> {
+) -> Json<IndexResponse> {
     let filters = match filters {
         Some(content) => content.into_inner(),
-        None => IndexData::default()
+        None => IndexData::default(),
     };
 
     let members = db
@@ -75,7 +75,7 @@ pub async fn index_members(
         })
         .await;
 
-    Json(IndexMembersResponse { members })
+    Json(IndexResponse { members })
 }
 
 pub fn get_routes() -> Vec<Route> {
