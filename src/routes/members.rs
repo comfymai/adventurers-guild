@@ -1,6 +1,6 @@
-use crate::models::member::{Member, MemberJson};
-use crate::database::members::MemberData;
+use crate::database::members::{IndexingOptions, MemberData};
 use crate::database::{members, AdventurersGuild};
+use crate::models::member::MemberJson;
 use rocket::{
     serde::{json::Json, Deserialize},
     Route,
@@ -14,7 +14,22 @@ pub struct RegisterResponse {
 
 #[derive(Serialize)]
 pub struct IndexMembersResponse {
-    members: Vec<Member>,
+    members: Vec<MemberJson>,
+}
+
+#[derive(Deserialize)]
+pub struct IndexData {
+    id: Option<String>,
+    username: Option<String>,
+}
+
+impl Default for IndexData {
+    fn default() -> Self {
+        Self {
+            id: None,
+            username: None
+        }
+    }
 }
 
 #[derive(Deserialize)]
@@ -38,9 +53,27 @@ pub async fn register(data: Json<AdventurerData>, db: AdventurersGuild) -> Json<
     Json(RegisterResponse { member })
 }
 
-#[get("/")]
-pub async fn index_members(db: AdventurersGuild) -> Json<IndexMembersResponse> {
-    let members = db.run(|conn| members::index(&conn)).await;
+#[get("/", format="json", data = "<filters>")]
+pub async fn index_members(
+    filters: Option<Json<IndexData>>,
+    db: AdventurersGuild,
+) -> Json<IndexMembersResponse> {
+    let filters = match filters {
+        Some(content) => content.into_inner(),
+        None => IndexData::default()
+    };
+
+    let members = db
+        .run(move |conn| {
+            members::index(
+                &conn,
+                IndexingOptions {
+                    id: filters.id,
+                    username: filters.username,
+                },
+            )
+        })
+        .await;
 
     Json(IndexMembersResponse { members })
 }

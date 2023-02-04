@@ -32,12 +32,22 @@ pub fn create<'a>(conn: &PgConnection, data: MemberData<'a>) -> MemberJson {
 }
 
 pub struct IndexingOptions {
-    title: Option<String>,
-    content: Option<String>,
-    author_id: Option<String>,
-    kind: Option<i32>,
+    pub id: Option<String>,
+    pub username: Option<String>,
 }
 
-pub fn index(conn: &PgConnection) -> Vec<Member> {
-    members::table.load(conn).expect("failed to index members.")
+pub fn index(conn: &PgConnection, options: IndexingOptions) -> Vec<MemberJson> {
+    let mut query = members::table.into_boxed();
+
+    if let Some(ref id) = options.id {
+        query = query.filter(members::id.eq(id))
+    }
+    if let Some(ref username) = options.username {
+        query = query.filter(members::username.eq(username))
+    }
+
+    query
+        .load::<Member>(conn)
+        .map(|result| result.into_iter().map(|member| member.to_json()).collect())
+        .expect("failed to index members.")
 }
