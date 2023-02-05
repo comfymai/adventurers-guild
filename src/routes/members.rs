@@ -1,4 +1,4 @@
-use crate::database::members::{IndexingOptions, MemberData};
+use crate::database::members::{IndexingOptions, MemberCreationError, MemberData};
 use crate::database::{members, AdventurersGuild};
 use crate::models::member::MemberJson;
 use rocket::{
@@ -6,6 +6,11 @@ use rocket::{
     Route,
 };
 use serde::Serialize;
+
+#[derive(Serialize)]
+pub struct ErrorResponse {
+    message: String,
+}
 
 #[derive(Serialize)]
 pub struct RegisterResponse {
@@ -17,9 +22,12 @@ pub struct RegisterData {
     name: String,
 }
 
-#[post("/register", data = "<data>")]
-pub async fn register(data: Json<RegisterData>, db: AdventurersGuild) -> Json<RegisterResponse> {
-    let member = db
+#[post("/register", format = "json", data = "<data>")]
+pub async fn register(
+    data: Json<RegisterData>,
+    db: AdventurersGuild,
+) -> Result<Json<RegisterResponse>, Json<ErrorResponse>> {
+    let result = db
         .run(move |conn| {
             members::create(
                 &conn,
@@ -30,7 +38,17 @@ pub async fn register(data: Json<RegisterData>, db: AdventurersGuild) -> Json<Re
         })
         .await;
 
-    Json(RegisterResponse { member })
+    match result {
+        Ok(member) => Ok(Json(RegisterResponse { member })),
+        Err(error) => match error {
+            MemberCreationError::DuplicateUsername => Err(Json(ErrorResponse {
+                message: "There's already a member registered with the same username.".to_string(),
+            })),
+            MemberCreationError::Generic => Err(Json(ErrorResponse {
+                message: "Something went wrong when trying to register member.".to_string(),
+            })),
+        },
+    }
 }
 
 #[derive(Serialize)]

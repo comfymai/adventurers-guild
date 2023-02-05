@@ -3,8 +3,28 @@ use crate::schema::members;
 
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
+use diesel::result::{DatabaseErrorKind, Error};
 use serde::Serialize;
 use uuid::Uuid;
+
+pub enum MemberCreationError {
+    DuplicateUsername,
+    Generic,
+}
+
+impl From<Error> for MemberCreationError {
+    fn from(error: Error) -> Self {
+        match &error {
+            Error::DatabaseError(DatabaseErrorKind::UniqueViolation, details) => {
+                match details.constraint_name() {
+                    Some("members_username_key") => MemberCreationError::DuplicateUsername,
+                    _ => MemberCreationError::Generic,
+                }
+            }
+            _ => MemberCreationError::Generic,
+        }
+    }
+}
 
 #[derive(Insertable)]
 #[table_name = "members"]
@@ -18,17 +38,20 @@ pub struct MemberData {
     pub username: String,
 }
 
-pub fn create<'a>(conn: &PgConnection, data: MemberData) -> MemberJson {
+pub fn create(conn: &PgConnection, data: MemberData) -> Result<MemberJson, MemberCreationError> {
     let new_member = NewMember {
         id: Uuid::new_v4().to_string(),
         username: data.username,
     };
 
-    diesel::insert_into(members::table)
+    let result = diesel::insert_into(members::table)
         .values(new_member)
-        .get_result::<Member>(conn)
-        .expect("failed to create member.")
-        .to_json()
+        .get_result::<Member>(conn);
+
+    match result {
+        Ok(member) => Ok(member.to_json()),
+        Err(error) => Err(MemberCreationError::from(error)),
+    }
 }
 
 pub struct IndexingOptions {
